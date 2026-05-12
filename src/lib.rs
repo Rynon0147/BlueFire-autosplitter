@@ -40,7 +40,7 @@ use asr::{
     Address64,
     string::ArrayWString,
 };
-use alloc::{string::String, vec::Vec, string::ToString};
+use alloc::{string::String, string::ToString};
 use crate::offsets::get_offsets;
 use asr::settings::gui::Title;
 
@@ -72,17 +72,6 @@ struct Settings {
     samael: bool,
     queen: bool,
 }
-/*
-struct Shrines {
-    fire_keep_fire_shrine: bool,
-    arcane_tunnels_fire_shrine: bool,
-    stoneheart_city_fire_shrine: bool,
-    abandoned_path_fire_shrine: bool,
-    temple_gardens_fire_shrine: bool,
-    firefall_river_fire_shrine: bool,
-    steam_house_fire_shrine: bool,
-}
-*/
 
 async fn main() {
     // Set up some general state and settings.
@@ -122,8 +111,8 @@ async fn main() {
 
             // Current event
             let mut watch_current_event: Watcher<String> = Watcher::new();
-            watch_current_event.update_infallible("NONE".to_string());
-            set_variable("Event", &watch_current_event.pair.unwrap().current);
+            watch_current_event.update_infallible(String::from("NONE"));
+            set_variable("Event", "NONE");
 
 
             print_message("Loop start");
@@ -184,6 +173,8 @@ async fn main() {
                                     let plsmanijustwantastr: String = String::from_utf16_lossy(&event_string);
                                     let str_event: &str = plsmanijustwantastr.as_str();
                                     set_variable("Event", str_event);
+                                    watch_current_event.update_infallible(plsmanijustwantastr);
+                                    print_message("NewEvent");
                                 }
                             }
                         }
@@ -211,7 +202,14 @@ async fn main() {
                             reset_vars(&mut split_states);
                             fresh_values = true;
                         }
-                        
+                        //start timer
+                        if let Some(current_event_string) = &watch_current_event.pair {
+                            if current_event_string.changed() && current_event_string.current.as_str() == "IntroScene" {
+                                start();
+                                pause_game_time();
+                            }
+                        }
+                        /*
                         if let Some(current_game_time) = watch_total_centiseconds.pair {
                             if current_game_time.old != current_game_time.current{
                                 if current_game_time.current > 10f32{
@@ -220,23 +218,17 @@ async fn main() {
                                 }
                             }
                         }
+                        */
                     }
                     
                     TimerState::Paused | TimerState::Running => {
                         if fresh_values {
                             fresh_values = false;
                         }
-                        if let Some(current_game_time) = watch_total_centiseconds.pair {
-                            if current_game_time.current < current_game_time.old 
-                            && current_game_time.current > 0f32 
-                            && current_game_time.current < 5f32{
-                                reset();
-                            }
-                        }
 
                         if let Some(current_shrine) = watch_current_shrine.pair {
                             if current_shrine.changed(){
-                                print_message("new shrine");
+                                //print_message("new shrine");
                                 match current_shrine.current{
                                     4 => {
                                         split_setting_check(FK_SHRINE, settings.fire_keep_fire_shrine, &mut split_states, "FK shrine");
@@ -263,12 +255,62 @@ async fn main() {
                                 }
                             }
                         }
+
+                        if let Some(current_event_string) = &watch_current_event.pair {
+                            if current_event_string.changed() {
+                                //do the event once
+                                let one_time_event = current_event_string.current.clone();
+                                watch_current_event.update_infallible(one_time_event.clone());
+                                //print_message("new event");
+                                
+                                match one_time_event.as_str() {
+                                    //reset
+                                    "IntroScene" => {
+                                        if watch_total_centiseconds.pair.unwrap().current > 0f32{
+                                            reset();
+                                            start();
+                                            pause_game_time();
+                                        }
+                                    }
+                                    //vessels
+                                    "BP_BeiraVesselBase_Graveyard" => {
+                                        split_setting_check(AP_SOUL_FRAGMENTS_END, settings.ap_soul_fragments_end, &mut split_states, "AP frag end");
+                                    }
+                                    "BP_BeiraVesselBase_TempleGardens" => {
+                                        split_setting_check(TG_SOUL_FRAGMENTS_END, settings.tg_soul_fragments_end, &mut split_states, "TG frag end");
+                                    }
+                                    "BP_BeiraVesselBase_LakeMolva" => {
+                                        split_setting_check(FFR_SOUL_FRAGMENTS_END, settings.ffr_soul_fragments_end, &mut split_states, "FFR frag end");
+                                    }
+                                    "BP_BeiraVesselBase_GameIntro" =>{
+                                        split_setting_check(FK_SOUL_FRAGMENTS_END, settings.fk_soul_fragments_end, &mut split_states, "FK frag end");
+                                    }
+                                    //bosses
+                                    "NuosTempleEndCutscene" => {
+                                        split_setting_check(GRUH, settings.gruh, &mut split_states, "Gruh dead");
+                                    }
+                                    "UthasEndCutscene" => {
+                                        split_setting_check(CROH, settings.croh, &mut split_states, "Croh dead");
+                                    }
+                                    "TeleportTemple14" => {
+                                        split_setting_check(SIRION, settings.sirion, &mut split_states, "Sirion dead");
+                                    }
+                                    "TeleportTemple2" =>{
+                                        split_setting_check(BEIRA, settings.beira, &mut split_states, "Beira dead");
+                                    }
+                                    "TeleportTemple9" => {
+                                        split_setting_check(SAMAEL, settings.samael, &mut split_states, "Samael dead");
+                                    }
+                                    "BossQueen" => {
+                                        split_setting_check(QUEEN, settings.queen, &mut split_states, "Queen dead");
+                                    }
+                                    _ => {}
+                                }
+                            }
+                        }
                     }
                     _ => {}
                 }
-
-
-
                 next_tick().await;
             }
             
@@ -277,9 +319,9 @@ async fn main() {
     }
 }
 
+
 fn split_setting_check(index: usize, setting: bool, split_states: &mut [i32;32], var_string: &str){
     if setting && split_states[index] == 0{
-        print_message("yesnt");
         split();
         split_states[index] = 1;
         set_variable_int(var_string, split_states[index]);
@@ -297,70 +339,21 @@ fn reset_vars(split_states: &mut [i32;32]){
     set_variable_int("TG shrine", 0);
     set_variable_int("FFR shrine", 0);
     set_variable_int("SH shrine", 0);
-}
-/*
 
-fn bool_split(){
-    if !touched_shrines.steam_house_fire_shrine {
-                                    split();
-                                    touched_shrines.steam_house_fire_shrine = true;
-    }
-    if settings.fire_keep_fire_shrine
-        && split_states[BAILEY_KEY] == 0
-    {
-        if let Some(bailey_key) = watch_bailey_key.pair {
-            if bailey_key.changed_to(&true) {
-                print_message("Split: Bailey Key Pickup");
-                split_states[BAILEY_KEY] = 1;
-                split()
-            }
-        }
-    }
-    match flag{
-        4 => {
-            if !touched_shrines.fire_keep_fire_shrine {
-                split();
-                touched_shrines.fire_keep_fire_shrine = true;
-            }
-        }
-        3 => {
-            if !touched_shrines.arcane_tunnels_fire_shrine {
-                split();
-                touched_shrines.arcane_tunnels_fire_shrine = true;
-            }
-        }
-        0 => {
-            if !touched_shrines.stoneheart_city_fire_shrine {
-                split();
-                touched_shrines.stoneheart_city_fire_shrine = true;
-            }
-        }
-        1 => {
-            if !touched_shrines.abandoned_path_fire_shrine {
-                split();
-                touched_shrines.abandoned_path_fire_shrine = true;
-            }
-        }
-        2 => {if !touched_shrines.temple_gardens_fire_shrine {
-                split();
-                touched_shrines.temple_gardens_fire_shrine = true;
-            }
-        }
-        5 => {if !touched_shrines.firefall_river_fire_shrine {
-                split();
-                touched_shrines.firefall_river_fire_shrine = true;
-            }
-        }
-        6 => {if !touched_shrines.steam_house_fire_shrine {
-                split();
-                touched_shrines.steam_house_fire_shrine = true;
-            }
-        }
-        _ => {}
-    }
+    set_variable_int("AP frag end", 0);
+    set_variable_int("TG frag end", 0);
+    set_variable_int("FFR frag end", 0);
+    set_variable_int("FK frag end", 0);
+    
+    set_variable_int("Gruh dead", 0);
+    set_variable_int("Croh dead", 0);
+    set_variable_int("Sirion dead", 0);
+    set_variable_int("Beira dead", 0);
+    set_variable_int("Samael dead", 0);
+    set_variable_int("Queen dead", 0);
 }
- */
 
+//shrines
 const SHC_SHRINE: usize = 0;
 const AP_SHRINE: usize = 1;
 const TG_SHRINE: usize = 2;
@@ -369,3 +362,16 @@ const FK_SHRINE: usize = 4;
 const FFR_SHRINE: usize = 5;
 const SH_SHRINE: usize = 6;
 
+//vesselsouls
+const AP_SOUL_FRAGMENTS_END: usize = 7;
+const TG_SOUL_FRAGMENTS_END: usize = 8;
+const FFR_SOUL_FRAGMENTS_END: usize = 9;
+const FK_SOUL_FRAGMENTS_END: usize = 10;
+
+//bosses
+const GRUH: usize = 11;
+const CROH: usize = 12;
+const SIRION: usize = 13;
+const BEIRA: usize = 14;
+const SAMAEL: usize = 15;
+const QUEEN: usize = 16;
