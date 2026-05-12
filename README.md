@@ -1,6 +1,6 @@
 # bf-autosplitter
 
-An auto splitter for PROA34-Win64-Shipping.
+An auto splitter for Blue Fire (PROA34-Win64-Shipping).
 
 ## Compilation
 
