@@ -40,7 +40,7 @@ use asr::{
     Address64,
     string::ArrayWString,
 };
-use alloc::{string::String, string::ToString};
+use alloc::string::String;
 use crate::offsets::get_offsets;
 use asr::settings::gui::Title;
 
@@ -73,10 +73,13 @@ struct Settings {
     queen: bool,
 }
 
+const DEBUG: bool = false;
+
 async fn main() {
     // Set up some general state and settings.
     let process_name: &str = "PROA34-Win64-Shipping.exe";
     let mut settings = Settings::register();
+
 
     loop {
         // wait until process is found
@@ -98,21 +101,21 @@ async fn main() {
             // Game Timer
             let mut watch_total_centiseconds: Watcher<f32> = Watcher::new();
             watch_total_centiseconds.update_infallible(0f32);
-            set_variable_float("Centiseconds", 0f32);
+            if DEBUG {set_variable_float("Centiseconds", 0f32);}
 
             // Current shrine
             let mut watch_current_shrine: Watcher<u32> = Watcher::new();
-            set_variable_int("Shrine", 0u32);
+            if DEBUG {set_variable_int("Shrine", 0u32);}
 
             // Current event size
             let mut watch_current_event_size: Watcher<u32> = Watcher::new();
             watch_current_event_size.update_infallible(0u32);
-            set_variable_int("EventSize", 0u32);
+            if DEBUG {set_variable_int("EventSize", 0u32);}
 
             // Current event
             let mut watch_current_event: Watcher<String> = Watcher::new();
             watch_current_event.update_infallible(String::from("NONE"));
-            set_variable("Event", "NONE");
+            if DEBUG {set_variable("Event", "NONE");}
 
 
             print_message("Loop start");
@@ -120,7 +123,7 @@ async fn main() {
             loop {
                 settings.update();
 
-                set_variable_int("World", module.g_world().value());
+                if DEBUG {set_variable_int("World", module.g_world().value());}
                 
                 // Game Timer
                 if let Ok(time) = process.read_pointer_path::<f32>(
@@ -130,7 +133,7 @@ async fn main() {
                 ) {
                     if time > 0f32 {
                         watch_total_centiseconds.update_infallible(time);
-                        set_variable_float("Centiseconds", time);
+                        if DEBUG {set_variable_float("Centiseconds", time);}
                         set_game_time(Duration::seconds_f32(time/100.0));
                     }
                 }
@@ -142,7 +145,7 @@ async fn main() {
                     &offsets.last_shrine,
                 ) {
                     watch_current_shrine.update_infallible(flag);
-                    set_variable_int("Shrine", flag);
+                    if DEBUG {set_variable_int("Shrine", flag);}
                 }
 
 
@@ -152,29 +155,28 @@ async fn main() {
                     Bit64, 
                     &offsets.events_size
                 ) {
-                    set_variable_int("EventSize", size);
+                    if DEBUG {set_variable_int("EventSize", size);}
                     watch_current_event_size.update_infallible(size);
                     if watch_current_event_size.pair.unwrap().changed() && size > 1 {
 
                         let offset = (size - 1) * 0x10;
-                        set_variable_int("Event offset" ,offset);
+                        if DEBUG {set_variable_int("Event offset" ,offset);}
                         if let Ok(event) = process.read_pointer_path::<u32>(
                             module.g_world(), 
                             Bit64, 
                             &offsets.events_array,
                         ) {
-                            set_variable_int("Events", event);
+                            if DEBUG {set_variable_int("Events", event);}
                             let black_magic = event + offset;
-                            set_variable_int("black magic", black_magic);
+                            if DEBUG {set_variable_int("black magic", black_magic);}
                             let magic_address = Address64::new(black_magic.into());
                             if let Ok(event_name_address) = process.read_pointer(magic_address, Bit64){
-                                set_variable_int("Event string address", event_name_address.value());
+                                if DEBUG {set_variable_int("Event string address", event_name_address.value());}
                                 if let Ok(event_string) = process.read::<ArrayWString<255>>(event_name_address){
                                     let plsmanijustwantastr: String = String::from_utf16_lossy(&event_string);
                                     let str_event: &str = plsmanijustwantastr.as_str();
-                                    set_variable("Event", str_event);
+                                    if DEBUG {set_variable("Event", str_event);}
                                     watch_current_event.update_infallible(plsmanijustwantastr);
-                                    print_message("NewEvent");
                                 }
                             }
                         }
@@ -189,9 +191,9 @@ async fn main() {
                     &offsets.cutscene,
                 ) {
                     if flag{
-                        set_variable("cutscene", "yay");
+                        if DEBUG {set_variable("cutscene", "yay");}
                     } else {
-                        set_variable("cutscene", "buh");
+                        if DEBUG {set_variable("cutscene", "buh");}
                     }
                 }
                 
@@ -324,7 +326,7 @@ fn split_setting_check(index: usize, setting: bool, split_states: &mut [i32;32],
     if setting && split_states[index] == 0{
         split();
         split_states[index] = 1;
-        set_variable_int(var_string, split_states[index]);
+        if DEBUG {set_variable_int(var_string, split_states[index]);}
     }
 
 }
@@ -332,25 +334,28 @@ fn split_setting_check(index: usize, setting: bool, split_states: &mut [i32;32],
 
 fn reset_vars(split_states: &mut [i32;32]){
     split_states.fill(0);
-    set_variable_int("FK shrine", 0);
-    set_variable_int("AT shrine", 0);
-    set_variable_int("SHC shrine", 0);
-    set_variable_int("AP shrine", 0);
-    set_variable_int("TG shrine", 0);
-    set_variable_int("FFR shrine", 0);
-    set_variable_int("SH shrine", 0);
 
-    set_variable_int("AP frag end", 0);
-    set_variable_int("TG frag end", 0);
-    set_variable_int("FFR frag end", 0);
-    set_variable_int("FK frag end", 0);
+    if DEBUG {
+        set_variable_int("FK shrine", 0);
+        set_variable_int("AT shrine", 0);
+        set_variable_int("SHC shrine", 0);
+        set_variable_int("AP shrine", 0);
+        set_variable_int("TG shrine", 0);
+        set_variable_int("FFR shrine", 0);
+        set_variable_int("SH shrine", 0);
+
+        set_variable_int("AP frag end", 0);
+        set_variable_int("TG frag end", 0);
+        set_variable_int("FFR frag end", 0);
+        set_variable_int("FK frag end", 0);
     
-    set_variable_int("Gruh dead", 0);
-    set_variable_int("Croh dead", 0);
-    set_variable_int("Sirion dead", 0);
-    set_variable_int("Beira dead", 0);
-    set_variable_int("Samael dead", 0);
-    set_variable_int("Queen dead", 0);
+        set_variable_int("Gruh dead", 0);
+        set_variable_int("Croh dead", 0);
+        set_variable_int("Sirion dead", 0);
+        set_variable_int("Beira dead", 0);
+        set_variable_int("Samael dead", 0);
+        set_variable_int("Queen dead", 0);
+    }
 }
 
 //shrines
