@@ -80,7 +80,7 @@ struct Settings {
     show_completion: bool,
 }
 
-const DEBUG: bool = true;
+const DEBUG: bool = false;
 
 async fn main() {
     // Set up some general state and settings.
