@@ -40,7 +40,11 @@ use asr::{
     Address64,
     string::ArrayWString,
 };
-use alloc::string::String;
+use alloc::{
+    string::String,
+    format,
+};
+
 use crate::offsets::get_offsets;
 use asr::settings::gui::Title;
 
@@ -65,15 +69,18 @@ struct Settings {
     fk_soul_fragments_end: bool,
 
     bosses: Title,
-    gruh: bool,
-    croh: bool,
-    sirion: bool,
-    beira: bool,
-    samael: bool,
-    queen: bool,
+    gruh_dead: bool,
+    croh_dead: bool,
+    sirion_dead: bool,
+    beira_dead: bool,
+    samael_dead: bool,
+    queen_dead: bool,
+
+    other_settings: Title,
+    show_completion: bool,
 }
 
-const DEBUG: bool = false;
+const DEBUG: bool = true;
 
 async fn main() {
     // Set up some general state and settings.
@@ -124,7 +131,7 @@ async fn main() {
                 settings.update();
 
                 if DEBUG {set_variable_int("World", module.g_world().value());}
-                
+
                 // Game Timer
                 if let Ok(time) = process.read_pointer_path::<f32>(
                     module.g_world(),
@@ -185,6 +192,7 @@ async fn main() {
                 }
                 
                 // Cutscene (dont need yet~)
+                /*
                 if let Ok(flag) = process.read_pointer_path::<bool>(
                     module.g_world(),
                     Bit64,
@@ -196,7 +204,19 @@ async fn main() {
                         if DEBUG {set_variable("cutscene", "buh");}
                     }
                 }
+                */
                 
+                //completion
+                if settings.show_completion {
+                    if let Ok(flag) = process.read_pointer_path::<u32>(
+                        module.g_world(),
+                        Bit64,
+                        &offsets.completion,
+                    ) {
+                        let form_string = format!("{}.{:02}%", flag / 100, flag % 100);
+                        set_variable("Completion", form_string.as_str());
+                    }
+                }
                 
                 match state(){
                     TimerState::NotRunning => {
@@ -211,16 +231,6 @@ async fn main() {
                                 pause_game_time();
                             }
                         }
-                        /*
-                        if let Some(current_game_time) = watch_total_centiseconds.pair {
-                            if current_game_time.old != current_game_time.current{
-                                if current_game_time.current > 10f32{
-                                    start();
-                                    pause_game_time();
-                                }
-                            }
-                        }
-                        */
                     }
                     
                     TimerState::Paused | TimerState::Running => {
@@ -263,8 +273,7 @@ async fn main() {
                                 //do the event once
                                 let one_time_event = current_event_string.current.clone();
                                 watch_current_event.update_infallible(one_time_event.clone());
-                                //print_message("new event");
-                                
+                                //print_message(one_time_event.as_str());
                                 match one_time_event.as_str() {
                                     //reset
                                     "IntroScene" => {
@@ -289,22 +298,35 @@ async fn main() {
                                     }
                                     //bosses
                                     "NuosTempleEndCutscene" => {
-                                        split_setting_check(GRUH, settings.gruh, &mut split_states, "Gruh dead");
+                                        split_setting_check(GRUH, settings.gruh_dead, &mut split_states, "Gruh dead");
                                     }
                                     "UthasEndCutscene" => {
-                                        split_setting_check(CROH, settings.croh, &mut split_states, "Croh dead");
+                                        split_setting_check(CROH, settings.croh_dead, &mut split_states, "Croh dead");
                                     }
-                                    "TeleportTemple14" => {
-                                        split_setting_check(SIRION, settings.sirion, &mut split_states, "Sirion dead");
-                                    }
-                                    "TeleportTemple2" =>{
-                                        split_setting_check(BEIRA, settings.beira, &mut split_states, "Beira dead");
-                                    }
-                                    "TeleportTemple9" => {
-                                        split_setting_check(SAMAEL, settings.samael, &mut split_states, "Samael dead");
+                                    "TeleportTemple" => {
+                                        // Streaming Chunk
+                                        if let Ok(chunk) = process.read_pointer_path::<u32>(
+                                            module.g_world(),
+                                            Bit64,
+                                            &offsets.streaming_chunk,
+                                        ) {
+                                            if DEBUG {set_variable_int("Chunk", chunk);}
+                                            match chunk {
+                                                14u32 =>   {
+                                                    split_setting_check(SIRION, settings.sirion_dead, &mut split_states, "Sirion dead");
+                                                }
+                                                2u32 =>{
+                                                    split_setting_check(BEIRA, settings.beira_dead, &mut split_states, "Beira dead");
+                                                }
+                                                9u32 => {
+                                                    split_setting_check(SAMAEL, settings.samael_dead, &mut split_states, "Samael dead");
+                                                }
+                                                _ => {}                                     
+                                            }
+                                        }
                                     }
                                     "BossQueen" => {
-                                        split_setting_check(QUEEN, settings.queen, &mut split_states, "Queen dead");
+                                        split_setting_check(QUEEN, settings.queen_dead, &mut split_states, "Queen dead");
                                     }
                                     _ => {}
                                 }
@@ -326,7 +348,7 @@ fn split_setting_check(index: usize, setting: bool, split_states: &mut [i32;32],
     if setting && split_states[index] == 0{
         split();
         split_states[index] = 1;
-        if DEBUG {set_variable_int(var_string, split_states[index]);}
+        if DEBUG {set_variable_int(var_string, split_states[index]);print_message(var_string)}
     }
 
 }
