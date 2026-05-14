@@ -16,9 +16,7 @@ use asr::{
     time::Duration,
     print_message, 
     watcher::Watcher, 
-    //deep_pointer::DeepPointer,
     game_engine::unreal::{
-//        FNameKey, 
         Module, 
         Version
     },
@@ -101,7 +99,6 @@ async fn main() {
                 process.get_module_address(process_name).unwrap(),
             )).await;
 
-            let mut fresh_values: bool = false;
             let offsets = get_offsets();
             let mut split_states: [i32; 32] = [0; 32];
 
@@ -218,26 +215,19 @@ async fn main() {
                     }
                 }
                 
+                set_variable_int("FK state", split_states[4]);
+
                 match state(){
                     TimerState::NotRunning => {
-                        if !fresh_values{
-                            reset_vars(&mut split_states);
-                            fresh_values = true;
-                        }
                         //start timer
                         if let Some(current_event_string) = &watch_current_event.pair {
                             if current_event_string.changed() && current_event_string.current.as_str() == "IntroScene" {
-                                start();
-                                pause_game_time();
+                                reset_all(&mut split_states);
                             }
                         }
                     }
                     
                     TimerState::Paused | TimerState::Running => {
-                        if fresh_values {
-                            fresh_values = false;
-                        }
-
                         if let Some(current_shrine) = watch_current_shrine.pair {
                             if current_shrine.changed(){
                                 //print_message("new shrine");
@@ -278,9 +268,8 @@ async fn main() {
                                     //reset
                                     "IntroScene" => {
                                         if watch_total_centiseconds.pair.unwrap().current > 0f32{
-                                            reset();
-                                            start();
-                                            pause_game_time();
+                                            
+                                            reset_all(&mut split_states);
                                         }
                                     }
                                     //vessels
@@ -354,9 +343,13 @@ fn split_setting_check(index: usize, setting: bool, split_states: &mut [i32;32],
 }
 
 
-fn reset_vars(split_states: &mut [i32;32]){
+fn reset_all(split_states: &mut [i32;32]){
     split_states.fill(0);
-
+ 
+    reset();
+    start();
+    pause_game_time();
+    
     if DEBUG {
         set_variable_int("FK shrine", 0);
         set_variable_int("AT shrine", 0);
