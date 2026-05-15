@@ -5,6 +5,9 @@ extern crate alloc;
 static ALLOC: dlmalloc::GlobalDlmalloc = dlmalloc::GlobalDlmalloc;
 
 mod offsets;
+use crate::offsets::get_offsets;
+mod splitter_settings;
+//use crate::offsets::get_offsets;
 
 use asr::{
     future::{
@@ -34,7 +37,6 @@ use asr::{
         TimerState,
         pause_game_time,
     },
-//    string::ArrayCString,
     Address64,
     string::ArrayWString,
 };
@@ -43,48 +45,16 @@ use alloc::{
     format,
 };
 
-use crate::offsets::get_offsets;
-use asr::settings::gui::Title;
-
 asr::async_main!(stable);
 asr::panic_handler!();
-
-#[derive(Gui)]
-struct Settings {
-    fire_shrines: Title,
-    fire_keep_fire_shrine: bool,
-    arcane_tunnels_fire_shrine: bool,
-    stoneheart_city_fire_shrine: bool,
-    abandoned_path_fire_shrine: bool,
-    temple_gardens_fire_shrine: bool,
-    firefall_river_fire_shrine: bool,
-    steam_house_fire_shrine: bool,
-
-    soul_fragments: Title,
-    ap_soul_fragments_end: bool,
-    tg_soul_fragments_end: bool,
-    ffr_soul_fragments_end: bool,
-    fk_soul_fragments_end: bool,
-
-    bosses: Title,
-    gruh_dead: bool,
-    croh_dead: bool,
-    sirion_dead: bool,
-    beira_dead: bool,
-    samael_dead: bool,
-    queen_dead: bool,
-
-    other_settings: Title,
-    show_completion: bool,
-}
 
 const DEBUG: bool = false;
 
 async fn main() {
     // Set up some general state and settings.
     let process_name: &str = "PROA34-Win64-Shipping.exe";
-    let mut settings = Settings::register();
-
+    let mut settings = splitter_settings::Settings::register();
+    splitter_settings::set_tooltips();
 
     loop {
         // wait until process is found
@@ -214,8 +184,6 @@ async fn main() {
                         set_variable("Completion", form_string.as_str());
                     }
                 }
-                
-                set_variable_int("FK state", split_states[4]);
 
                 match state(){
                     TimerState::NotRunning => {
@@ -317,6 +285,25 @@ async fn main() {
                                     "BossQueen" => {
                                         split_setting_check(QUEEN, settings.queen_dead, &mut split_states, "Queen dead");
                                     }
+                                    //abilities
+                                    "Chest_A01_Keep_Shield" => {
+                                        split_setting_check(SHIELD, settings.shield, &mut split_states, "Shield got");
+                                    }
+                                    "IDTutorial_FireBall" => {
+                                        split_setting_check(FIREBALL, settings.fireball, &mut split_states, "Fireball got");
+                                    }
+                                    "IDTutorial_Spin Attack" => {
+                                        split_setting_check(SPIN, settings.spin, &mut split_states, "Spin got");
+                                    }
+                                    "IDTutorial_Wall Run" => {
+                                        split_setting_check(WALLRUN, settings.wall_run, &mut split_states, "Wallrun got");
+                                    }
+                                    "IDTutorial_Double Jump" => {
+                                        split_setting_check(DOUBLEJUMP, settings.double_jump, &mut split_states, "Double Jump got");
+                                    }
+                                    "IDTutorial_Warp" => {
+                                        split_setting_check(FASTTRAVEL, settings.fast_travel, &mut split_states, "Fast Travel got");
+                                    }
                                     _ => {}
                                 }
                             }
@@ -395,3 +382,11 @@ const SIRION: usize = 13;
 const BEIRA: usize = 14;
 const SAMAEL: usize = 15;
 const QUEEN: usize = 16;
+
+//abilities
+const SHIELD: usize = 17;
+const FIREBALL: usize = 18;
+const SPIN: usize = 19;
+const WALLRUN: usize = 20;
+const DOUBLEJUMP: usize = 21;
+const FASTTRAVEL: usize = 22;
