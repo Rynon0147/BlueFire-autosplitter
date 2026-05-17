@@ -80,7 +80,7 @@ pub struct Settings {
     ///Shrines
     dlc_shrine: Title,
     #[default = false]
-    pub void_gate_shrine: bool,
+    pub void_gate__fire_shrine: bool,
 
     #[heading_level = 1]
     ///Boss

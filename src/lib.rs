@@ -265,6 +265,10 @@ async fn main() {
                                     6 => {
                                         split_setting_check(SH_SHRINE, settings.steam_house_fire_shrine, &mut split_states);
                                     }
+                                    //DLC
+                                    8 => {
+                                        split_setting_check(VG_SHRINE, settings.void_gate_fire_shrine, &mut split_states);
+                                    }
                                     _ => {}
                                 }
                             }
