@@ -91,6 +91,10 @@ async fn main() {
             watch_current_event.update_infallible(String::from("NONE"));
             if DEBUG {set_variable("Event", "NONE");}
 
+            // Current chunk
+            let mut watch_current_chunk: Watcher<u32> = Watcher::new();
+            watch_current_chunk.update_infallible(999);
+            if DEBUG {set_variable_int("Chunk", 999);}
 
             print_message("Loop start");
             
@@ -163,6 +167,7 @@ async fn main() {
                                             &offsets.streaming_chunk,
                                         ) 
                 {
+                    watch_current_chunk.update_infallible(chunk);
                     if DEBUG {set_variable_int("chunk", chunk);}
                 }
                 // Cutscene (dont need yet~)
@@ -247,7 +252,6 @@ async fn main() {
                                     //reset
                                     "IntroScene" => {
                                         if watch_total_centiseconds.pair.unwrap().current > 0f32{
-                                            
                                             reset_all(&mut split_states);
                                         }
                                     }
@@ -273,25 +277,19 @@ async fn main() {
                                     }
                                     "TeleportTemple" => {
                                         // Streaming Chunk
-                                        if let Ok(chunk) = process.read_pointer_path::<u32>(
-                                            module.g_world(),
-                                            Bit64,
-                                            &offsets.streaming_chunk,
-                                        ) {
-                                            if DEBUG {set_variable_int("Chunk", chunk);}
-                                            match chunk {
-                                                14u32 =>   {
-                                                    split_setting_check(SIRION, settings.sirion_dead, &mut split_states);
-                                                }
-                                                2u32 =>{
-                                                    split_setting_check(BEIRA, settings.beira_dead, &mut split_states);
-                                                }
-                                                9u32 => {
-                                                    split_setting_check(SAMAEL, settings.samael_dead, &mut split_states);
-                                                }
-                                                _ => {}                                     
+                                        match watch_current_chunk.pair.unwrap().current {
+                                            14u32 =>   {
+                                                split_setting_check(SIRION, settings.sirion_dead, &mut split_states);
                                             }
+                                            2u32 =>{
+                                                split_setting_check(BEIRA, settings.beira_dead, &mut split_states);
+                                            }
+                                            9u32 => {
+                                                split_setting_check(SAMAEL, settings.samael_dead, &mut split_states);
+                                            }
+                                            _ => {}                                     
                                         }
+                                        
                                     }
                                     "BossQueen" => {
                                         split_setting_check(QUEEN, settings.queen_dead, &mut split_states);
@@ -432,6 +430,19 @@ async fn main() {
                                 }
                             }
                         }
+                        //transitions
+                        if let Some(current_chunk) = &watch_current_chunk.pair {
+                            if current_chunk.changed() {
+                                //Forest from city
+                                if current_chunk.old == 0u32 && current_chunk.current == 4u32 {
+                                    split_setting_check(SHC_TO_FOREST, settings.transition_shc_to_forest, &mut split_states);
+                                }
+                                //Uthas from AP
+                                if current_chunk.old == 10u32 && current_chunk.current == 3u32 {
+                                    split_setting_check(AP_TO_UTHAS, settings.transition_ap_to_uthas, &mut split_states);
+                                }
+                            }
+                        }
                     }
                     _ => {}
                 }
@@ -443,7 +454,7 @@ async fn main() {
     }
 }
 
-
+//size of splitstates must be equal or bigger than number of splits
 fn split_setting_check(index: usize, setting: bool, split_states: &mut [i32;32]){
     if setting && split_states[index] == 0{
         split();
@@ -452,7 +463,7 @@ fn split_setting_check(index: usize, setting: bool, split_states: &mut [i32;32])
 
 }
 
-
+//size of splitstates must be equal or bigger than number of splits
 fn reset_all(split_states: &mut [i32;32]){
     split_states.fill(0);
  
@@ -495,6 +506,12 @@ const FASTTRAVEL: usize = 22;
 
 //DLC shrine
 const VG_SHRINE: usize = 23;
+
+//Transitions
+const SHC_TO_FOREST: usize = 24;
+const AP_TO_UTHAS: usize = 25;
+
+
 /*
 //DLC voids blue
 const VOID_DLC_B_S_1: usize = 24;

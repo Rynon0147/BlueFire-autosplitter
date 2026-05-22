@@ -73,6 +73,16 @@ pub struct Settings {
     #[default = false]
     pub fast_travel: bool,
 
+    #[heading_level = 1]
+    transitions: Title,
+    #[default = false]
+    ///Enter Forest Shrine from Stoneheart City
+    pub transition_shc_to_forest: bool,
+    ///Enter Uthas Temple from Abandoned Path
+    #[default = false]
+    pub transition_ap_to_uthas: bool,
+
+
     #[heading_level = 0]
     ///DLC
     dlc: Title,
