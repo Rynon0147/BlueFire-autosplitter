@@ -70,7 +70,7 @@ async fn main() {
             )).await;
 
             let offsets = get_offsets();
-            let mut split_states: [i32; 32] = [0; 32];
+            let mut split_states: [bool; 32] = [false; 32];
 
             // Game Timer
             let mut watch_total_centiseconds: Watcher<f32> = Watcher::new();
@@ -268,7 +268,26 @@ async fn main() {
                                     "BP_BeiraVesselBase_GameIntro" =>{
                                         split_setting_check(FK_SOUL_FRAGMENTS_END, settings.fk_soul_fragments_end, &mut split_states);
                                     }
-                                    //bosses
+                                    //bosses start
+                                    "BossDoor_Gru" => {
+                                        split_setting_check(GRUH_START, settings.gruh_start, &mut split_states);
+                                    }
+                                    "BossDoor_Boo" => {
+                                        split_setting_check(CROH_START, settings.croh_start, &mut split_states);
+                                    }
+                                    "BossLordSirion_SkipCutscene" => {
+                                        split_setting_check(SIRION_START, settings.sirion_start, &mut split_states);
+                                    }
+                                    "BossLordBeira_SkipCutscene" => {
+                                        split_setting_check(BEIRA_START, settings.beira_start, &mut split_states);
+                                    }
+                                    "BossLordSamael_SkipCutscene" => {
+                                        split_setting_check(SAMAEL_START, settings.samael_start, &mut split_states);
+                                    }
+                                    "Queen_SkipCutscene" => {
+                                        split_setting_check(QUEEN_START, settings.queen_dead, &mut split_states);
+                                    }
+                                    //bosses end
                                     "NuosTempleEndCutscene" => {
                                         split_setting_check(GRUH, settings.gruh_dead, &mut split_states);
                                     }
@@ -462,17 +481,17 @@ async fn main() {
 }
 
 //size of splitstates must be equal or bigger than number of splits
-fn split_setting_check(index: usize, setting: bool, split_states: &mut [i32;32]){
-    if setting && split_states[index] == 0{
+fn split_setting_check(index: usize, setting: bool, split_states: &mut [bool;32]){
+    if setting && !split_states[index]{
         split();
-        split_states[index] = 1;
+        split_states[index] = true;
     }
 
 }
 
 //size of splitstates must be equal or bigger than number of splits
-fn reset_all(split_states: &mut [i32;32]){
-    split_states.fill(0);
+fn reset_all(split_states: &mut [bool;32]){
+    split_states.fill(false);
  
     reset();
     start();
@@ -495,7 +514,7 @@ const TG_SOUL_FRAGMENTS_END: usize = 8;
 const FFR_SOUL_FRAGMENTS_END: usize = 9;
 const FK_SOUL_FRAGMENTS_END: usize = 10;
 
-//bossesgit reset --hard
+//bosses end
 const GRUH: usize = 11;
 const CROH: usize = 12;
 const SIRION: usize = 13;
@@ -521,6 +540,14 @@ const AP_TO_UTHAS: usize = 25;
 //Spirits
 const FIRE_KEEP_TEAR: usize = 26;
 const AERIAL_RAT: usize = 27;
+
+//bosses start
+const GRUH_START: usize = 28;
+const CROH_START: usize = 29;
+const SIRION_START: usize = 13;
+const BEIRA_START: usize = 14;
+const SAMAEL_START: usize = 15;
+const QUEEN_START: usize = 16;
 
 /*
 //DLC voids blue

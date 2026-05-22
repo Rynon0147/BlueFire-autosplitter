@@ -45,17 +45,41 @@ pub struct Settings {
 
     #[heading_level = 1]
     bosses: Title,
+    #[heading_level = 2]
+    gruh: Title,
+    #[default = false]
+    pub gruh_start: bool,
     #[default = false]
     pub gruh_dead: bool,
+    #[heading_level = 2]
+    croh: Title,
+    #[default = false]
+    pub croh_start: bool,
     #[default = false]
     pub croh_dead: bool,
+    #[heading_level = 2]
+    sirion: Title,
+    #[default = false]
+    pub sirion_start: bool,
     #[default = false]
     pub sirion_dead: bool,
+    #[heading_level = 2]
+    beira: Title,
+    #[default = false]
+    pub beira_start: bool,
     #[default = false]
     pub beira_dead: bool,
+    #[heading_level = 2]
+    samael: Title,
+    #[default = false]
+    pub samael_start: bool,
     #[default = false]
     pub samael_dead: bool,
-    #[default = true]
+    #[heading_level = 2]
+    queen: Title,
+    #[default = false]
+    pub queen_start: bool,
+    #[default = false]
     pub queen_dead: bool,
 
     #[heading_level = 1]
