@@ -82,6 +82,14 @@ pub struct Settings {
     #[default = false]
     pub transition_ap_to_uthas: bool,
 
+    #[heading_level = 1]
+    spirits: Title,
+    #[default = false]
+    ///Fire Keep Tear
+    pub spirit_fire_keep_tear: bool,
+    ///Aerial Rat
+    #[default = false]
+    pub spirit_aerial_rat: bool,
 
     #[heading_level = 0]
     ///DLC

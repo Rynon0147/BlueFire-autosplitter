@@ -313,6 +313,13 @@ async fn main() {
                                     "IDTutorial_Warp" => {
                                         split_setting_check(FASTTRAVEL, settings.fast_travel, &mut split_states);
                                     }
+                                    //spirits
+                                    "Spirit_A02_RiverSpirit" => {
+                                        split_setting_check(FIRE_KEEP_TEAR, settings.spirit_fire_keep_tear, &mut split_states);
+                                    }
+                                    "Spirit_A02_ToxicRat" => {
+                                        split_setting_check(AERIAL_RAT, settings.spirit_aerial_rat, &mut split_states);
+                                    }
                                     /*
                                     DLC
                                      */
@@ -511,6 +518,9 @@ const VG_SHRINE: usize = 23;
 const SHC_TO_FOREST: usize = 24;
 const AP_TO_UTHAS: usize = 25;
 
+//Spirits
+const FIRE_KEEP_TEAR: usize = 26;
+const AERIAL_RAT: usize = 27;
 
 /*
 //DLC voids blue
