@@ -48,7 +48,7 @@ use alloc::{
 asr::async_main!(stable);
 asr::panic_handler!();
 
-const DEBUG: bool = true;
+const DEBUG: bool = false;
 
 async fn main() {
     // Set up some general state and settings.
@@ -148,7 +148,6 @@ async fn main() {
                                 //if DEBUG {set_variable_int("Event string address", event_name_address.value());}
                                 if let Ok(event_string) = process.read::<ArrayWString<255>>(event_name_address){
                                     let plsmanijustwantastr: String = String::from_utf16_lossy(&event_string);
-                                    let str_event: &str = plsmanijustwantastr.as_str();
                                     //if DEBUG {set_variable("Event", str_event);}
                                     watch_current_event.update_infallible(plsmanijustwantastr);
                                 }
@@ -157,42 +156,6 @@ async fn main() {
                     }
 
                 }
-                
-                // Events (DELETE THIS)
-                if let Ok(size) = process.read_pointer_path::<u32>(
-                    module.g_world(), 
-                    Bit64, 
-                    &offsets.events_size
-                ) {
-                    if DEBUG {set_variable_int("EventSize", size);}
-                    watch_current_event_size.update_infallible(size);
-                    if size > 1 {
-
-                        let offset = (size - 1) * 0x10;
-                        if DEBUG {set_variable_int("Event offset" ,offset);}
-                        if let Ok(event) = process.read_pointer_path::<u32>(
-                            module.g_world(), 
-                            Bit64, 
-                            &offsets.events_array,
-                        ) {
-                            if DEBUG {set_variable_int("Events", event);}
-                            let black_magic = event + offset;
-                            if DEBUG {set_variable_int("black magic", black_magic);}
-                            let magic_address = Address64::new(black_magic.into());
-                            if let Ok(event_name_address) = process.read_pointer(magic_address, Bit64){
-                                if DEBUG {set_variable_int("Event string address", event_name_address.value());}
-                                if let Ok(event_string) = process.read::<ArrayWString<255>>(event_name_address){
-                                    let plsmanijustwantastr: String = String::from_utf16_lossy(&event_string);
-                                    let str_event: &str = plsmanijustwantastr.as_str();
-                                    if DEBUG {set_variable("Event", str_event);}
-                                }
-                            }
-                        }
-                    }
-
-                }
-
-
 
                 if let Ok(chunk) = process.read_pointer_path::<u32>(
                                             module.g_world(),
@@ -363,6 +326,7 @@ async fn main() {
                                     */
                                     //Voids
                                     //Blue start
+                                    /*
                                     "MyrasRise" => {
                                         split_setting_check(VOID_DLC_B_S_1, settings.void_dlc_b_s_1, &mut split_states);
                                     }
@@ -463,6 +427,7 @@ async fn main() {
                                     "GodStone_21_VarioTheInvisible" => {
                                         split_setting_check(VOID_DLC_R_E_8, settings.void_dlc_r_e_8, &mut split_states);
                                     }
+                                    */
                                     _ => {}
                                 }
                             }
@@ -530,7 +495,7 @@ const FASTTRAVEL: usize = 22;
 
 //DLC shrine
 const VG_SHRINE: usize = 23;
-
+/*
 //DLC voids blue
 const VOID_DLC_B_S_1: usize = 24;
 const VOID_DLC_B_S_2: usize = 25;
@@ -573,3 +538,4 @@ const VOID_DLC_R_E_8: usize = 55;
 
 //DLC boss
 const BOSS_DLC: usize = 56;
+*/
