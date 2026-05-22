@@ -1,7 +1,6 @@
 use asr::settings::gui::{set_tooltip, Title};
 use asr::settings::{Gui, Map};
-use asr::print_message;
-
+//use asr::print_message;
 
 pub fn set_tooltips() {
     {
@@ -13,7 +12,7 @@ pub fn set_tooltips() {
 }
 
 pub fn set_category_any_nmg() -> Map{
-    let mut map = Map::new();
+    let map = Map::new();
     map.insert("category", "AnyPercentNMG");  
     map.insert("spirit_fire_keep_tear", true);
     map.insert("arcane_tunnels_fire_shrine", true);
@@ -291,8 +290,8 @@ pub struct Settings {
 #[derive(Gui, Eq, PartialEq, Clone, Copy)]
 pub enum Category {
     /// Any% NMG
+    #[default]
     AnyPercentNMG,
     /// other
-    #[default]
     Other,
 }

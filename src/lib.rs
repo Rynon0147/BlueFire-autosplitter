@@ -7,7 +7,6 @@ static ALLOC: dlmalloc::GlobalDlmalloc = dlmalloc::GlobalDlmalloc;
 mod offsets;
 use crate::offsets::get_offsets;
 mod splitter_settings;
-use crate::splitter_settings::Category;
 
 use asr::{
     future::{next_tick, retry}, 
@@ -98,7 +97,7 @@ async fn main() {
             loop {
                 settings.update();
 
-                let mut map = Map::load();
+                let map = Map::load();
                 if let Some(cat) = map.get("category") {
                     watch_category.update_infallible(cat.get_string().unwrap());
                 }
@@ -106,7 +105,7 @@ async fn main() {
                     if category.changed() {
                         match category.current.as_str() {
                             "AnyPercentNMG" => {
-                                let mut new_map = splitter_settings::set_category_any_nmg();
+                                let new_map = splitter_settings::set_category_any_nmg();
                                 //if new_map.get("sirion_start").is_some() && new_map.get("sirion_start").unwrap().get_bool().unwrap() { 
                                 //    //print_message(new_map.get("sirion_start").unwrap().get_bool().unwrap().as_str());
                                 //    print_message("bu");
