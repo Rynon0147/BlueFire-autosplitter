@@ -7,24 +7,17 @@ static ALLOC: dlmalloc::GlobalDlmalloc = dlmalloc::GlobalDlmalloc;
 mod offsets;
 use crate::offsets::get_offsets;
 mod splitter_settings;
-//use crate::offsets::get_offsets;
+use crate::splitter_settings::Category;
 
 use asr::{
-    future::{
-        next_tick, 
-        retry
-    }, 
-    settings::Gui,
+    future::{next_tick, retry}, 
+    settings::{Gui, Map},
     Process, 
     time::Duration,
     print_message, 
     watcher::Watcher, 
-    game_engine::unreal::{
-        Module, 
-        Version
-    },
-    PointerSize::{
-        Bit64},
+    game_engine::unreal::{Module, Version},
+    PointerSize::Bit64,
     timer::{
         reset, 
         set_game_time, 
@@ -72,6 +65,10 @@ async fn main() {
             let offsets = get_offsets();
             let mut split_states: [bool; 32] = [false; 32];
 
+            // Categories
+            let mut watch_category: Watcher<String> = Watcher::new();
+            watch_category.update_infallible(String::from("Other"));
+
             // Game Timer
             let mut watch_total_centiseconds: Watcher<f32> = Watcher::new();
             watch_total_centiseconds.update_infallible(0f32);
@@ -100,6 +97,27 @@ async fn main() {
             
             loop {
                 settings.update();
+
+                let mut map = Map::load();
+                if let Some(cat) = map.get("category") {
+                    watch_category.update_infallible(cat.get_string().unwrap());
+                }
+                if let Some(category) = &watch_category.pair {
+                    if category.changed() {
+                        match category.current.as_str() {
+                            "AnyPercentNMG" => {
+                                let mut new_map = splitter_settings::set_category_any_nmg();
+                                //if new_map.get("sirion_start").is_some() && new_map.get("sirion_start").unwrap().get_bool().unwrap() { 
+                                //    //print_message(new_map.get("sirion_start").unwrap().get_bool().unwrap().as_str());
+                                //    print_message("bu");
+                                //}
+                                new_map.store();
+                            }
+                            _ => {}
+                        }
+                        print_message("Category switched");
+                    }
+                }
 
                 if DEBUG {set_variable_int("World", module.g_world().value());}
 

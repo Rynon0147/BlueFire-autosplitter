@@ -1,5 +1,6 @@
 use asr::settings::gui::{set_tooltip, Title};
-use asr::settings::Gui;
+use asr::settings::{Gui, Map};
+use asr::print_message;
 
 
 pub fn set_tooltips() {
@@ -9,6 +10,32 @@ pub fn set_tooltips() {
             r##"Sets the variable "Completion". Can be displayed by LiveSplit as text."##,
         );
     }
+}
+
+pub fn set_category_any_nmg() -> Map{
+    let mut map = Map::new();
+    map.insert("category", "AnyPercentNMG");  
+    map.insert("spirit_fire_keep_tear", true);
+    map.insert("arcane_tunnels_fire_shrine", true);
+    map.insert("spin", true);
+    map.insert("transition_shc_to_forest", true);
+    map.insert("gruh_dead", true);
+    map.insert("transition_ap_to_uthas", true);
+    map.insert("croh_dead", true);
+    map.insert("abandoned_path_fire_shrine", true);
+    map.insert("ffr_soul_fragments_end", true);
+    map.insert("sirion_start", true);
+    map.insert("sirion_dead", true);
+    map.insert("tg_soul_fragments_end", true);
+    map.insert("fk_soul_fragments_end", true);
+    map.insert("ap_soul_fragments_end", true);
+    map.insert("beira_start", true);
+    map.insert("beira_dead", true);
+    map.insert("samael_start", true);
+    map.insert("samael_dead", true);
+    map.insert("queen_start", true);
+    map.insert("queen_dead", true);
+    map
 }
 
 #[derive(Gui)]
@@ -255,6 +282,17 @@ pub struct Settings {
 
     #[heading_level = 0]
     other_settings: Title,
+    /// Category
+    pub category: Category,
     #[default = true]
     pub show_completion: bool,
+}
+
+#[derive(Gui, Eq, PartialEq, Clone, Copy)]
+pub enum Category {
+    /// Any% NMG
+    AnyPercentNMG,
+    /// other
+    #[default]
+    Other,
 }
