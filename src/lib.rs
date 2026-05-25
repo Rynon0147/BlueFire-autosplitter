@@ -62,7 +62,7 @@ async fn main() {
             )).await;
 
             let offsets = get_offsets();
-            let mut split_states: [bool; 32] = [false; 32];
+            let mut split_states: [bool; 33] = [false; 33];
 
             // Categories
             let mut watch_category: Watcher<String> = Watcher::new();
@@ -106,10 +106,6 @@ async fn main() {
                         match category.current.as_str() {
                             "AnyPercentNMG" => {
                                 let new_map = splitter_settings::set_category_any_nmg();
-                                //if new_map.get("sirion_start").is_some() && new_map.get("sirion_start").unwrap().get_bool().unwrap() { 
-                                //    //print_message(new_map.get("sirion_start").unwrap().get_bool().unwrap().as_str());
-                                //    print_message("bu");
-                                //}
                                 new_map.store();
                             }
                             _ => {}
@@ -498,7 +494,7 @@ async fn main() {
 }
 
 //size of splitstates must be equal or bigger than number of splits
-fn split_setting_check(index: usize, setting: bool, split_states: &mut [bool;32]){
+fn split_setting_check(index: usize, setting: bool, split_states: &mut [bool;33]){
     if setting && !split_states[index]{
         split();
         split_states[index] = true;
@@ -507,7 +503,7 @@ fn split_setting_check(index: usize, setting: bool, split_states: &mut [bool;32]
 }
 
 //size of splitstates must be equal or bigger than number of splits
-fn reset_all(split_states: &mut [bool;32]){
+fn reset_all(split_states: &mut [bool;33]){
     split_states.fill(false);
  
     reset();
@@ -561,10 +557,10 @@ const AERIAL_RAT: usize = 27;
 //bosses start
 const GRUH_START: usize = 28;
 const CROH_START: usize = 29;
-const SIRION_START: usize = 13;
-const BEIRA_START: usize = 14;
-const SAMAEL_START: usize = 15;
-const QUEEN_START: usize = 16;
+const SIRION_START: usize = 30;
+const BEIRA_START: usize = 31;
+const SAMAEL_START: usize = 32;
+const QUEEN_START: usize = 33;
 
 /*
 //DLC voids blue

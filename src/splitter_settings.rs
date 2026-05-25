@@ -15,6 +15,7 @@ pub fn set_category_any_nmg() -> Map{
     let map = Map::new();
     map.insert("category", "AnyPercentNMG");  
     map.insert("spirit_fire_keep_tear", true);
+    map.insert("fire_keep_fire_shrine", true);
     map.insert("arcane_tunnels_fire_shrine", true);
     map.insert("spin", true);
     map.insert("transition_shc_to_forest", true);
